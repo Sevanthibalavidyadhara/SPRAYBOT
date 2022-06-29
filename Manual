@@ -1,0 +1,316 @@
+
+#define IN1 4
+#define IN2 3
+#define IN3 6
+#define IN4 5    // ROBOT MOVMENT
+
+
+#define SW1 8
+#define SW2 9
+
+#define relay1 7
+
+int value1;
+int While;
+//#include <SoftwareSerial.h>
+//
+//SoftwareSerial mySerial(6, 7); // RX, TX
+char ch;
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+
+
+void setup() {
+  // put your setup code here, to run once:
+
+
+ pinMode(IN1,OUTPUT);
+ pinMode(IN2,OUTPUT);
+ pinMode(IN3,OUTPUT);
+ pinMode(IN4,OUTPUT);
+ pinMode(SW1,INPUT_PULLUP);
+ pinMode(SW2,INPUT_PULLUP);
+ pinMode(relay1,OUTPUT);
+ Serial.begin(115200);//192.168.4.1//
+
+ Serial.println("AGRI ROBOT");
+delay(1000);
+
+   WIFI();
+      Serial.write("AT+CIPSEND=0,22\r\n"); // MULTIPLE MODE SELECTION 
+      delay(50);
+      Serial.write("AGRIBOT CONTROL."); 
+      delay(50);  
+      Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+      delay(1000);
+       
+}
+
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  //SerialEvent();
+  if(digitalRead(SW1)==0)
+  {
+    Serial.println("AUTO MODE");
+    Auto_mode();
+ 
+  }
+  if(digitalRead(SW2)==0)
+  {
+     Serial.println("MANUAL MODE");
+  SerialEvent();
+ 
+}
+}
+  void Auto_mode()
+  {
+  ForwardMove();
+  delay(2000);
+  LeftMove();
+  delay(2000);
+  RightMove();
+  delay(2000);
+  REVERSE();
+  delay(2000);
+  }
+void ForwardMove()
+{
+   FORWARD();
+  STOP();
+ delay(1000);
+   
+}
+void LeftMove()
+{
+   LEFT();
+  STOP();
+delay(1000);
+FORWARD();
+  STOP();
+ delay(1000);
+}
+void RightMove()
+{
+   RIGHT();
+  STOP();
+  FORWARD();
+  STOP();
+ delay(1000);
+}
+void REVERSE()
+{
+   REVERSE1();
+  STOP();
+}
+void FORWARD()
+{
+  
+    Serial.println("FORWARD ");
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,HIGH);
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
+     relay12();
+    delay(1000);
+  
+}
+void LEFT()
+{
+  
+    Serial.println("LEFT ");
+
+ digitalWrite(IN1,LOW);
+  digitalWrite(IN2,HIGH);
+  digitalWrite(IN3,HIGH);
+  digitalWrite(IN4,LOW);
+
+    
+  
+   relay12();
+    delay(1000);
+}
+void REVERSE1()
+{ 
+  
+    Serial.println("REVERSE ");
+  digitalWrite(IN1,HIGH);
+  digitalWrite(IN2,LOW);
+  digitalWrite(IN3,HIGH);
+  digitalWrite(IN4,LOW);
+    relay12();
+    delay(1000);
+}
+void RIGHT()
+{
+  
+    Serial.println("RIGHT ");
+ digitalWrite(IN2,HIGH);
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN4,LOW);
+  digitalWrite(IN3,HIGH);
+    relay12();
+    delay(1000);
+
+}
+void STOP()
+{
+  
+    Serial.println("STOP ");
+  digitalWrite(IN1,LOW);
+  digitalWrite(IN2,LOW);
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,LOW);
+    relay12();
+    delay(1000);
+}
+
+
+
+void relay12()
+{
+
+Serial.print("PUMP ON");
+    digitalWrite(relay1,HIGH);
+    delay(2000);
+    Serial.print("PUMP OFF");
+    digitalWrite(relay1,LOW);
+    delay(1000);
+
+}
+
+char Serial_read(void)
+{
+      char ch;
+      while(Serial.available() == 0);
+      ch = Serial.read(); 
+      return ch;
+}
+
+
+void WIFI(void)
+{
+  String BUFF, buff_1;
+  char ch;
+
+  Serial.print('A');
+  delay(10);
+  Serial.print('T');
+  delay(10);
+  Serial.print('E');
+  delay(10);
+  Serial.print('0');
+  delay(10);
+  Serial.print("\r\n");
+
+  Serial.print("1");
+
+  Serial.print(Serial.readString());
+  delay(50);
+
+
+  Serial.write("AT\r\n");
+  Serial.print("2");
+  Serial.print(Serial.readString());
+  delay(50);
+
+  Serial.write("AT+CWMODE=2\r\n");
+  Serial.print("3");
+  Serial.print(Serial.readString());
+  delay(50);
+  
+  Serial.write("AT+CIPMUX=1\r\n");
+  Serial.print("8");
+  Serial.print(Serial.readString());
+  delay(50);
+
+  Serial.write("AT+CIPSERVER=1,80\r\n");
+ 
+  Serial.print("9");
+  Serial.print(Serial.readString());
+  delay(50);
+
+  Serial.write("AT+CIFSR\r\n");
+  Serial.print("10");
+  Serial.print(Serial.readString());
+  delay(50);
+     
+}
+
+void SerialEvent()
+{
+  
+  while(1)
+  {
+  if (Serial.available() > 0)
+      {
+          if(Serial_read() == '$')  //either # or $
+          {
+            ch = Serial_read();
+  
+        Serial.print(ch);
+
+         if (ch == 'F')
+        {
+          FORWARD();
+          relay12();
+          Serial.write("AT+CIPSEND=0,15\r\n"); // MULTIPLE MODE SELECTION 
+          delay(50);
+          Serial.write("FORWARD MOVEMENT"); 
+          delay(50);  
+          Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+          delay(1000);
+        }
+        
+        if (ch == 'B')
+        {
+          REVERSE1();
+          relay12();
+          Serial.write("AT+CIPSEND=0,15\r\n"); // MULTIPLE MODE SELECTION 
+          delay(50);
+          Serial.write("REVERSE MOVEMENT"); 
+          delay(50);  
+          Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+          delay(1000);
+        }
+        
+        if(ch=='L')
+        {
+          LEFT();
+          relay12();
+          Serial.write("AT+CIPSEND=0,15\r\n"); // MULTIPLE MODE SELECTION 
+          delay(50);
+          Serial.write("LEFT MOVEMENT"); 
+          delay(50);  
+          Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+          delay(1000);
+        }
+        if(ch=='R')
+        {
+          RIGHT();
+          relay12();
+          Serial.write("AT+CIPSEND=0,15\r\n"); // MULTIPLE MODE SELECTION 
+          delay(50);
+          Serial.write("RIGHT MOVEMENT"); 
+          delay(50);  
+          Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+          delay(1000);
+        }
+        if(ch=='S')
+        {
+          STOP();
+          relay12();
+          Serial.write("AT+CIPSEND=0,15\r\n"); // MULTIPLE MODE SELECTION 
+          delay(50);
+          Serial.write("STOP MOVEMENT"); 
+          delay(50);  
+          Serial.write("\n\r\r"); // MULTIPLE MODE SELECTION     
+          delay(1000);
+        } 
+               
+      }      
+        
+        }
+        }
+        
+}
